@@ -5,7 +5,7 @@ from django.conf.urls.defaults import patterns, include, url
 # admin.autodiscover()
 
 urlpatterns = patterns('',
-                       url(r'^/(*.)$', include('pokeapp.urls')),
+                       url(r'^/([A-z0-9_]+)$', include('pokeapp.urls')),
                        (r'site_media/(?P<path>.*)$', 'django.views.static.serve',
                         {'document_root': '/app/templates/'}),
     # Examples:
