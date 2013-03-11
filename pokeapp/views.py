@@ -82,8 +82,8 @@ def myposition(request):
     in onFrame in the JavaScript.
     """
     c = getchar(request)
-    # c.last_online = time.time()
-    # c.save()
+    c.last_online = time.time()
+    c.save()
     return HttpResponse(json.dumps({"x":c.x,
                                     "y":c.y,
                                     "id":c.id}),
