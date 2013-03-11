@@ -12,7 +12,7 @@ urlpatterns = patterns('',
                        url(r'^myposition$', 'pokeapp.views.myposition'),
                        url(r'^other_chars$', 'pokeapp.views.other_chars'),
                        (r'site_media/(?P<path>.*)$', 'django.views.static.serve',
-                        {'document_root': '/home/matthew/Capstone/Pokemon/templates/'}),
+                        {'document_root': '/app/templates/'}),
     # Examples:
     # url(r'^$', 'Pokemon.views.home', name='home'),
     # url(r'^Pokemon/', include('Pokemon.foo.urls')),
