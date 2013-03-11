@@ -1,13 +1,13 @@
 from django.conf.urls.defaults import patterns, include, url
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
 
-urlpatterns = patterns('',
-                       url(r'^$', include('pokeapp.urls')),
-                       (r'site_media/(?P<path>.*)$', 'django.views.static.serve',
-                        {'document_root': '/app/templates/'}),
+urlpatterns = patterns('pokeapp.views',
+                       url(r'^home$', 'home'),
+                       url(r'^time$', 'timenow'),
+                       url(r'^movement$','movement'),
+                       url(r'^keydown$', 'keydown'),
+                       url(r'^myposition$', 'myposition'),
+                       url(r'^other_chars$', 'other_chars'),
     # Examples:
     # url(r'^$', 'Pokemon.views.home', name='home'),
     # url(r'^Pokemon/', include('Pokemon.foo.urls')),
@@ -18,3 +18,4 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
 )
+
