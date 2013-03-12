@@ -6,7 +6,7 @@ function Character(x, y, id, color){
     this.current_pt = this.new_pt.clone();
     this.id = id;
     this.path;
-    this.draw();
+    this.draw(false);
     this.inc = 0;
     this.rast;
     this.dir;
@@ -16,9 +16,11 @@ function Character(x, y, id, color){
 Character.prototype.move = function(dx, dy){
     var xdist = this.new_pt.x - this.current_pt.x;
     var ydist = this.new_pt.y - this.current_pt.y;
+    var moving = false;
     // Obviously needs some refactoring to get rid of
     // repetition
     if (Math.abs(xdist) > dx){
+	moving = true;
 	var face = xdist/Math.abs(xdist);
 	this.current_pt.x += dx * face;
 	if (face>0)
@@ -27,6 +29,7 @@ Character.prototype.move = function(dx, dy){
 	    this.dir="left";
     }
     if (Math.abs(ydist) > dy){
+	moving = true
 	var face = ydist/Math.abs(ydist);
 	this.current_pt.y += dy * face;
 	if (face>0)
@@ -34,15 +37,17 @@ Character.prototype.move = function(dx, dy){
 	else
 	    this.dir="up";
     }
-    this.draw();
+    this.draw(moving);
 }
 
-Character.prototype.draw = function(){
+Character.prototype.draw = function(moving){
     if (this.rast)
 	this.rast.remove();
     if(!this.dir){
 	this.dir = "down"
     }
+    if(!moving)
+	this.inc=0;
     var img = this.dir+(parseInt(this.inc%4)).toString();
     this.rast = new Raster(img, this.current_pt);
     this.rast.scale(4);
@@ -70,7 +75,6 @@ $(function(){
 
     function update(){
 	$.ajax({
-	    beforeSend: function(){console.log("yo"); console.log(me.current_pt.x);},
 	    url:"update",
 	    data:{
 		x: me.current_pt.x,
@@ -108,14 +112,14 @@ $(function(){
     
     function my_movement(){
 	if(keysdown.left)
-	    me.current_pt.x-=dx;
+	    me.new_pt.x-=dx;
 	if(keysdown.right)
-	    me.current_pt.x+=dx;
+	    me.new_pt.x+=dx;
 	if(keysdown.up)
-	    me.current_pt.y-=dy+1;
+	    me.new_pt.y-=dy+1;
 	if(keysdown.down)
-	    me.current_pt.y+=dy;
-	me.draw();
+	    me.new_pt.y+=dy;
+	me.move(dx, dy);
     }
     
     view.onFrame = function (event){
