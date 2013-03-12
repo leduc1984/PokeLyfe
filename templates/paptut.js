@@ -1,13 +1,4 @@
-paper.install(window)
-
-// idea: instead of only being able to move your character
-// after their position has been updated in the database,
-// you could move your character as often as the next frame, updating
-// your position as often as possible.  This would make your movement
-// look much smoother.  Of course, you would only be able to get
-// other players' positions after ajaxing that info from the server,
-// so their movement may still look stilted to you.
-
+paper.install(window);
 
 function Character(x, y, id, color){
     this.color = color;
@@ -19,6 +10,7 @@ function Character(x, y, id, color){
     this.inc = 0;
     this.rast;
     this.dir;
+    this.online = true;
 }
 
 Character.prototype.move = function(dx, dy){
@@ -63,61 +55,84 @@ $(function(){
     var dy = 3;
     paper.setup("mycanvas");
     var me;
-    var first_time = true;
-    var other_chars = {}
+    var start = true;
+    var other_chars = {};
     var other_char_ids = new Array();
     other_chars.length = 0;
     var tool = new Tool();
-    var keysdown = {}
+    keysdown = {};
     tool.onKeyDown = function(event){
 	keysdown[event.key] = true;
-	$.ajax({
-	    url:"keydown",
-	    data:keysdown
-	});
     }
     tool.onKeyUp = function(event){
 	keysdown[event.key] = false;
     }
-    view.onFrame = function (event){
-	if (me)
-	    me.move(dx, dy);
+
+    function update(){
 	$.ajax({
-	    url:"myposition"
-	}).done(function(data){
-	    if (!me){
-		me = new Character(data.x, data.y, data.id, "red")
-	    }else{
-		me.new_pt.x = data.x;
-		me.new_pt.y = data.y;
-		
+	    beforeSend: function(){console.log("yo"); console.log(me.current_pt.x);},
+	    url:"update",
+	    data:{
+		x: me.current_pt.x,
+		y: me.current_pt.y
 	    }
-	    
-	});
-	$.ajax({
-	    url:"other_chars"
 	}).done(function(data){
-	    for (i=0; i<data.length; i++){
-		var pp = other_chars[data[i].index];
-		
-		if (pp){
-		    pp.new_pt.x = data[i].x;
-		    pp.new_pt.y = data[i].y;
-		    // pp.move(dx, dy);
+	    for(i=0; i<data.length; i++){
+		var character = other_chars[data[i].id];
+		if (character){
+		    if(data[i].online){
+			character.new_pt.x = data[i].x;
+			character.new_pt.y = data[i].y;
+			character.online = true;
+		    }else{
+			character.rast.remove();
+			character.online = false;
+		    }
 		}else{
-		    other_chars[data[i].index] =
-			new Character(data[i].x,
-				      data[i].y,
-				      data[i].index,
-				      "blue");
-		    other_chars.length++;
-		    other_char_ids.push(data[i].index);
+		    other_chars[data[i].id] = new Character(data[i].x,
+							    data[i].y,
+							    data[i].id,
+							    "blue");
+		    other_char_ids.push(data[i].id);
 		}
 	    }
 	});
-	for(j=0; j<other_char_ids.length; j++){
-	    other_chars[other_char_ids[j]].move(dx, dy);
-	}
     }
+    function get_me(){
+	$.ajax({
+	    url:"get_me"
+	}).done(function(data){
+	    me = new Character(data.x, data.y, data.id, "red");
+	});
+    }
+    
+    function my_movement(){
+	if(keysdown.left)
+	    me.current_pt.x-=dx;
+	if(keysdown.right)
+	    me.current_pt.x+=dx;
+	if(keysdown.up)
+	    me.current_pt.y-=dy+1;
+	if(keysdown.down)
+	    me.current_pt.y+=dy;
+	me.draw();
+    }
+    
+    view.onFrame = function (event){
+    	if (me && start){
+	    setInterval(update, 250);
+	    start = false;
+	}else if(me){
+	    my_movement();
+	}
+	console.log("other_char_ids.length: "+other_char_ids.length);
+    	for(j=0; j<other_char_ids.length; j++){
+    	    var c = other_chars[other_char_ids[j]];
+    	    if(c.online)
+    	    	c.move(dx, dy);
+    	}
+	
+    }
+    get_me();
     tool.activate();
 });

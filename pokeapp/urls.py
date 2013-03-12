@@ -8,6 +8,8 @@ urlpatterns = patterns('pokeapp.views',
                        url(r'^keydown$', 'keydown'),
                        url(r'^myposition$', 'myposition'),
                        url(r'^other_chars$', 'other_chars'),
+                       url(r'^get_me$', 'get_me'),
+                       url(r'^update$', 'update'),
     # Examples:
     # url(r'^$', 'Pokemon.views.home', name='home'),
     # url(r'^Pokemon/', include('Pokemon.foo.urls')),

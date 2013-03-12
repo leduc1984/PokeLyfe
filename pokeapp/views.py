@@ -1,4 +1,6 @@
 # Create your views here.
+# WEENIES!!!!!
+
 from itertools import product
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import Context, loader, RequestContext
@@ -98,4 +100,29 @@ def other_chars(request):
                      "y":char.y,
                      "last_online":char.last_online,
                      "my_last_online":c.last_online})
+    return HttpResponse(json.dumps(data), content_type="application/json")
+
+##################
+
+def get_me(request):
+    c = getchar(request)
+    return HttpResponse(json.dumps({"x":c.x,
+                                    "y":c.y,
+                                    "id":c.id}),
+                        content_type="application/json")
+
+def update(request):
+    c = getchar(request)
+    if request.GET.get("x") and request.GET.get("y"):
+        c.x, c.y = int(request.GET["x"]), int(request.GET["y"])
+
+    c.last_online = time.time()
+    c.save()
+    data = []
+    for char in Character.objects.exclude(id=c.id):
+        data.append({"x":char.x,
+                     "y":char.y,
+                     "id":char.id,
+                     "online":time.time() - char.last_online < 3
+                     })
     return HttpResponse(json.dumps(data), content_type="application/json")
