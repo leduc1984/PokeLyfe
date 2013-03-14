@@ -30,7 +30,7 @@ def home(request):
                                            "0123")]}
     fields["username"] = request.user.username
     context = RequestContext(request, fields)
-    template = loader.get_template("papertutorial.html")
+    template = loader.get_template("home.html")
     return HttpResponse(template.render(context))
 
 def timenow(request):

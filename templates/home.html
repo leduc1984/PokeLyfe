@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Welcome {{ username }}</title>
+    <script type="text/javascript" src="site_media/jquery.min.js"></script>
+    <script type="text/javascript" src="site_media/paper.js"></script>
+    <script type="text/javascript" src="site_media/home.js"></script>
+    <script type="text/javascript">
+    </script>
+    <style type="text/css">
+      #mycanvas{
+border: 5px solid black;
+}
+.sprite_image{
+display:none;
+}
+    </style>
+  </head>
+  <body>
+    <h1>Welcome {{ username }}</h1>
+    <a href="logout">Log Out</a>
+    <canvas id="mycanvas" resize="true"></canvas>
+    {% for name in imagenames %}
+    <img class="sprite_image" id="{{ name }}" src="site_media/{{ name }}.gif" />
+    {% endfor %}
+  </body>
+</html>
