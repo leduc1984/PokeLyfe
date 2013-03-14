@@ -1,6 +1,9 @@
 paper.install(window);
 
 function Character(x, y, id, color){
+    /*
+      Constructor for Character object
+    */
     this.color = color;
     this.new_pt = new Point(x, y);
     this.current_pt = this.new_pt.clone();
