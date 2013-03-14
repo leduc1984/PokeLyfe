@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sign Up</title>
+    <script type="text/javascript" src="site_media/jquery.min.js"></script>
+  </head>
+  <body>
+    <h1>Sign Up</h1>
+    <form action="register" method="post">
+      {% csrf_token %}
+      Username: <input type="text" name="username" /><br />
+      Email: <input type="text" name="email" /><br />
+      Password: <input type="password" id="first_password" name="password" /><br />
+      Confirm Password: <input type="password" id="confirm_password" name="confirm_password"  /><br />
+      <input type="submit" value="Submit" />
+    </form>
+    <form action="login" method="post">
+      {% csrf_token %}
+      Username: <input type="text" name="username"  /><br />
+      Password: <input type="password" name="password"  /><br />
+      <input type="submit" value="Submit" />
+    </form>
+  </body>
+</html>

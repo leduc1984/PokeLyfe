@@ -5,6 +5,8 @@
     <script type="text/javascript" src="/site_media/jquery.min.js"></script>
     <script type="text/javascript" src="/site_media/paper.js"></script>
     <script type="text/javascript" src="/site_media/paptut.js"></script>
+    <script type="text/javascript">
+    </script>
     <style type="text/css">
       #mycanvas{
 border: 5px solid black;
@@ -15,7 +17,9 @@ display:none;
     </style>
   </head>
   <body>
-    <h1>Paper Tutorial</h1>
+    <h1>Welcome {{ username }}</h1>
+    <a href="logout">Log Out</a>
+    <!-- <h1>Paper Tutorial</h1> -->
     <!-- <a href="javascript:tool1.activate();">Lines</a> -->
     <!-- <a href="javascript:tool2.activate();">Clouds</a> -->
     <canvas id="mycanvas" resize="true"></canvas>

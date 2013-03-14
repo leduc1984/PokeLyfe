@@ -4,26 +4,31 @@
 from itertools import product
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import Context, loader, RequestContext
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import redirect
 import time
 import json
 from models import *
 
+@login_required(login_url="SignUp")
 def home(request):
     cid = request.session.get("charid")
     try:
         c = Character.objects.get(id=cid)
     except Exception:
-        c = Character.objects.create(x=100,
-                                     y=100,
-                                     last_online = time.time())
+        c = Character.objects.get(user=request.user)
         request.session["charid"] = c.id
         request.session.save()
+
+    
     fields = {"imagenames":
               ["".join(e) for e in product(["up",
                                             "down",
                                             "left",
                                             "right"],
                                            "0123")]}
+    fields["username"] = request.user.username
     context = RequestContext(request, fields)
     template = loader.get_template("papertutorial.html")
     return HttpResponse(template.render(context))
@@ -31,6 +36,7 @@ def home(request):
 def timenow(request):
     return HttpResponse(time.time(), content_type="text/plain")
 
+@login_required(login_url="SignUp")
 def getchar(request):
     cid = request.session.get("charid")
     try:
@@ -77,6 +83,7 @@ def keydown(request):
     c.save()    
     return HttpResponse()
 
+@login_required(login_url="SignUp")
 def myposition(request):
     """
     This simpy returns the current x, y coordinate
@@ -91,6 +98,7 @@ def myposition(request):
                                     "id":c.id}),
                         content_type="application/json")
 
+@login_required(login_url="SignUp")
 def other_chars(request):
     c = getchar(request)
     data = []
@@ -103,7 +111,7 @@ def other_chars(request):
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 ##################
-
+@login_required(login_url="SignUp")
 def get_me(request):
     c = getchar(request)
     return HttpResponse(json.dumps({"x":c.x,
@@ -111,6 +119,7 @@ def get_me(request):
                                     "id":c.id}),
                         content_type="application/json")
 
+@login_required(login_url="SignUp")
 def update(request):
     c = getchar(request)
     if request.GET.get("x") and request.GET.get("y"):
@@ -126,3 +135,43 @@ def update(request):
                      "online":time.time() - char.last_online < 3
                      })
     return HttpResponse(json.dumps(data), content_type="application/json")
+
+def signup(request):
+    if request.user.is_authenticated():
+        return HttpResponseRedirect('home')
+    return HttpResponse(loader.get_template("signup.html").render(RequestContext(request, {})))
+
+
+def register(request):
+    p = request.POST.get
+    if (p("username") and
+        p("email") and
+        p("password") and
+        p("password") == p("confirm_password")):
+        u = User.objects.create_user(username=p("username"),
+                                     password=p("password"),
+                                     email=p("email"))
+        c = Character.objects.create(user=u,
+                                     x=100,
+                                     y=100,
+                                     last_online=time.time())
+        request.session["charid"] = c.id
+        u = authenticate(username=p("username"), password=p("password"))
+        if u is not None:
+            login(request, u)
+            return HttpResponseRedirect('home')
+    return HttpResponseRedirect('SignUp')
+
+def my_login(request):
+    username = request.POST.get("username")
+    password = request.POST.get("password")
+    if username and password:
+        user = authenticate(username=username,
+                            password=password)
+        if user:
+            login(request, user)
+    return HttpResponseRedirect('home')
+
+def my_logout(request):
+    logout(request)
+    return HttpResponseRedirect('SignUp')
