@@ -160,7 +160,7 @@ $(function(){
     view.onFrame = function (event){
     	if (me && start){
 	    // setInterval(update, 250);
-	    setInterval(start_updates, 100);
+	    setInterval(start_updates, 250);
 	    // setInterval(retrieve_other_chars, 100);
 	    start = false;
 	}else if(me){
