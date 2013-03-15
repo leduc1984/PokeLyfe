@@ -133,8 +133,8 @@ $(function(){
     }
 
     function start_updates(){
-	setInterval(update_my_position, 100);
-	setInterval(retrieve_other_chars, 100);
+	update_my_position();
+	retrieve_other_chars();
     }
    
     function get_me(){
@@ -160,8 +160,8 @@ $(function(){
     view.onFrame = function (event){
     	if (me && start){
 	    // setInterval(update, 250);
-	    setInterval(update_my_position, 100);
-	    setInterval(retrieve_other_chars, 100);
+	    setInterval(start_updates, 100);
+	    // setInterval(retrieve_other_chars, 100);
 	    start = false;
 	}else if(me){
 	    my_movement();
