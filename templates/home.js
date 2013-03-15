@@ -160,8 +160,8 @@ $(function(){
     view.onFrame = function (event){
     	if (me && start){
 	    // setInterval(update, 250);
-	    setInterval(update_my_position, 250);
-	    setInterval(retrieve_other_chars, 250);
+	    setInterval(update_my_position, 10);
+	    setInterval(retrieve_other_chars, 10);
 	    start = false;
 	}else if(me){
 	    my_movement();
