@@ -98,17 +98,17 @@ def myposition(request):
                                     "id":c.id}),
                         content_type="application/json")
 
-@login_required(login_url="SignUp")
-def other_chars(request):
-    c = getchar(request)
-    data = []
-    for char in Character.objects.exclude(id=c.id):
-        data.append({"index":char.id,
-                     "x":char.x,
-                     "y":char.y,
-                     "last_online":char.last_online,
-                     "my_last_online":c.last_online})
-    return HttpResponse(json.dumps(data), content_type="application/json")
+# @login_required(login_url="SignUp")
+# def other_chars(request):
+#     c = getchar(request)
+#     data = []
+#     for char in Character.objects.exclude(id=c.id):
+#         data.append({"index":char.id,
+#                      "x":char.x,
+#                      "y":char.y,
+#                      "last_online":char.last_online,
+#                      "my_last_online":c.last_online})
+#     return HttpResponse(json.dumps(data), content_type="application/json")
 
 ##################
 @login_required(login_url="SignUp")
@@ -121,14 +121,18 @@ def get_me(request):
 
 @login_required(login_url="SignUp")
 def update(request):
-    c = getchar(request)
-    if request.GET.get("x") and request.GET.get("y"):
-        c.x, c.y = int(request.GET["x"]), int(request.GET["y"])
+    if request.POST.get("x") and request.POST.get("y"):
+        c = getchar(request)
+        c.x, c.y = int(request.POST["x"]), int(request.POST["y"])
 
-    c.last_online = time.time()
-    c.save()
+        c.last_online = time.time()
+        c.save()
+    return HttpResponse()
+
+
+def other_chars(request):
     data = []
-    for char in Character.objects.exclude(id=c.id):
+    for char in Character.objects.exclude(id=request.session.get("charid")):
         data.append({"x":char.x,
                      "y":char.y,
                      "id":char.id,

@@ -1,0 +1,14 @@
+#mycanvas{
+    border: 5px solid black;
+}
+
+.sprite_image{
+    display:none;
+}
+
+/* body{ */
+/*     margin:0; */
+/*     padding:0; */
+/*     overflow:none; */
+/*     } */
+   

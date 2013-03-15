@@ -60,7 +60,15 @@ Character.prototype.draw = function(moving){
 
 $(function(){
     var dx = 3;
+    
     var dy = 3;
+    // alert($("body").width());
+    var margin = $("body").css("margin");
+    margin = parseInt(margin.substring(0, margin.length-2));
+    $("#mycanvas")
+	.attr("width", $(window).width() - 100)
+	.attr("height", $(window).height() - 150);
+    // Need to add some onresize handler
     paper.setup("mycanvas");
     var me;
     var start = true;
@@ -76,13 +84,31 @@ $(function(){
 	keysdown[event.key] = false;
     }
 
-    function update(){
+    function get_csrf(){
+	var c = document.cookie;
+	var csrf = "csrftoken=";
+	var i = c.search(csrf)+csrf.length;
+	var fuck = c.substring(i, c.length);
+	var csrf_value = fuck.substring(0, fuck.search(";"));
+	return csrf_value;
+					
+    }
+
+    function update_my_position(){
 	$.ajax({
 	    url:"update",
 	    data:{
 		x: me.current_pt.x,
-		y: me.current_pt.y
-	    }
+		y: me.current_pt.y,
+		csrfmiddlewaretoken: get_csrf()
+	    },
+	    type:"POST"
+	});
+    }
+
+    function retrieve_other_chars(){
+	$.ajax({
+	    url:"other_chars"
 	}).done(function(data){
 	    for(i=0; i<data.length; i++){
 		var character = other_chars[data[i].id];
@@ -105,6 +131,12 @@ $(function(){
 	    }
 	});
     }
+
+    function start_updates(){
+	setInterval(update_my_position, 100);
+	setInterval(retrieve_other_chars, 100);
+    }
+   
     function get_me(){
 	$.ajax({
 	    url:"get_me"
@@ -127,12 +159,13 @@ $(function(){
     
     view.onFrame = function (event){
     	if (me && start){
-	    setInterval(update, 250);
+	    // setInterval(update, 250);
+	    setInterval(update_my_position, 250);
+	    setInterval(retrieve_other_chars, 250);
 	    start = false;
 	}else if(me){
 	    my_movement();
 	}
-	console.log("other_char_ids.length: "+other_char_ids.length);
     	for(j=0; j<other_char_ids.length; j++){
     	    var c = other_chars[other_char_ids[j]];
     	    if(c.online)
