@@ -1,6 +1,53 @@
 paper.install(window);
 
-var me, other_chars, other_char_ids;
+var me, other_chars, other_char_ids, get_csrf;
+
+function print_lines(group, line_list, x0, y0){
+    var char_height = 15;
+    line_list.forEach(function(line){
+	var message = new PointText(new Point(x0, y0));
+	message.content = line;
+	message.paragraphStyle.justification = "left";
+	group.addChild(message);
+	y0 += char_height;
+    });
+    
+}
+
+function break_lines(max_width, message){
+    var char_width = 8;
+    var LINE_LENGTH = Math.floor(max_width/char_width);
+    var word_list = message.split(" ");
+    console.log(word_list.length);
+    var i = 0;
+    var line;
+    var line_list = new Array();
+    while(i < word_list.length){
+	line = '';
+	console.log(line.length);
+	console.log(word_list[i].length);
+
+	while(i < word_list.length){
+	    console.log(line.length);
+	    console.log(word_list[i].length);
+	    if (line.length + word_list[i].length <= LINE_LENGTH){
+		line += word_list[i]+ " ";
+		i++;
+	    }else if(line.length > 0 && line.length + word_list[i].length > LINE_LENGTH){
+		break;
+	    }else if(line.length == 0){
+		line += word_list[i].substring(0, LINE_LENGTH);
+		word_list[i] = word_list[i].substring(LINE_LENGTH, word_list[i].length);
+		break;
+	    }
+	    
+	}
+	line_list.push(line);
+	
+    }
+    console.log("got all the way here");
+    return line_list;
+}
 
 function SpeechBubble(id, char_id, text, time_left){
     this.id = id;
@@ -14,6 +61,8 @@ function SpeechBubble(id, char_id, text, time_left){
     }, time_left); // time_left is in milliseconds
 }
 
+
+
 SpeechBubble.prototype.draw = function(){
     if (!this.group){
 	this.group = new Group();
@@ -21,16 +70,23 @@ SpeechBubble.prototype.draw = function(){
 	    var character = me;
 	else
 	    var character = other_chars[this.char_id];
-	var bubble = new Path.Rectangle(new Rectangle(character.current_pt.x + 25,
-						      character.current_pt.y - 150,
-						      200,
-						      100));
+	var b_rect = new Rectangle(new Point(character.current_pt.x + 25,
+					     character.current_pt.y - 150),
+				   new Size(200,
+					    100));
+	var bubble = new Path.Rectangle(b_rect);
 	bubble.strokeColor = "black";
 	this.group.addChild(bubble);
-	var message = new PointText(new Point(bubble.position.x + 5,
-					      bubble.position.y + 5));
-	message.content = this.text;
-	this.group.addChild(message);
+	print_lines(this.group,
+		    break_lines(300, this.text),
+		    bubble.position.x-90,
+		    bubble.position.y-35);
+	// var message = new PointText(new Point(bubble.position.x,
+	// 				      bubble.position.y));
+	// message.content = this.text;
+	// // message.bounds = bubble.bounds;
+	// message.paragraphStyle.justification="right";
+	// this.group.addChild(message);
     }
 }
 
@@ -109,6 +165,21 @@ Character.prototype.draw = function(moving){
     
 }
 
+function send_message(text, recipients){
+    me.speech_bubbles.push(new SpeechBubble(99,
+					    me.id,
+					    text,
+					    15000));
+    $.ajax({
+	url:"send_message",
+	data:{
+	    text: text,
+	    recipients: recipients,
+	    csrfmiddlewaretoken: get_csrf()},
+	type:"POST"
+    });
+}
+
 $(function(){
     var dx = 3;
     
@@ -135,7 +206,7 @@ $(function(){
 	keysdown[event.key] = false;
     }
 
-    function get_csrf(){
+    get_csrf = function (){
 	var c = document.cookie;
 	var csrf = "csrftoken=";
 	var i = c.search(csrf)+csrf.length;
@@ -157,6 +228,20 @@ $(function(){
 	});
     }
 
+    function display_messages(character, messages){
+	var x;
+	for(x=0; x<messages.length; x++){
+	    var m = messages[x];
+	    if(!character.sb_obj[m.id]){
+		character.sb_obj[m.id] = true;
+		character.speech_bubbles.push(new SpeechBubble(m.id,
+							       character.id,
+							       m.text,
+							       m.time_left));
+	    }
+	}
+    }
+
     function retrieve_other_chars(){
 	$.ajax({
 	    url:"other_chars"
@@ -173,12 +258,14 @@ $(function(){
 			character.online = false;
 		    }
 		}else{
-		    other_chars[data[i].id] = new Character(data[i].x,
-							    data[i].y,
-							    data[i].id,
-							    "blue");
+		    character =
+			other_chars[data[i].id] = new Character(data[i].x,
+								data[i].y,
+								data[i].id,
+								"blue");
 		    other_char_ids.push(data[i].id);
 		}
+		display_messages(character, data[i].messages);
 	    }
 	});
     }
@@ -193,7 +280,14 @@ $(function(){
 	    url:"get_me"
 	}).done(function(data){
 	    me = new Character(data.x, data.y, data.id, "red");
-	    me.speech_bubbles.push(new SpeechBubble(1, 1, "HALLO", 5000));
+	    display_messages(me, data.messages);
+	    // me.speech_bubbles.push(new SpeechBubble(1, 1, "HALLO", 5000));
+	    // var x;
+	    // for(x=0; x<data.messages.length; x++){
+	    // 	var m = data.messages[x];
+	    // 	me.sb_obj[m.id] = true;
+	    // 	me.speech_bubbles.push(new SpeechBubble(m.id, me.id, m.text, m.time_left));
+	    // }
 	});
     }
     
@@ -208,12 +302,30 @@ $(function(){
 	    me.new_pt.y+=dy;
 	me.move(dx, dy);
     }
+
+    var first_focus = true;
+    $("#message").keydown(function(event){
+	if(event.which == 13){
+	    send_message($("#message").val(), "all");
+	    $("#message").val("Send another message!");
+	    first_focus = true;
+	    $(this).blur();
+	    $("#mycanvas").focus();
+	}
+    }).focus(function(event){
+	if (first_focus){
+	    $(this).val("");
+	    first_focus = false;
+	}
+    });
+    ;
     
     view.onFrame = function (event){
     	if (me && start){
 	    // setInterval(update, 250);
 	    setInterval(start_updates, 250);
 	    // setInterval(retrieve_other_chars, 100);
+
 	    start = false;
 	}else if(me){
 	    my_movement();
@@ -227,4 +339,5 @@ $(function(){
     }
     get_me();
     tool.activate();
+
 });

@@ -14,6 +14,7 @@ urlpatterns = patterns('pokeapp.views',
                        url(r'^register$', 'register'),
                        url(r'^login$', 'my_login'),
                        url(r'^logout$', 'my_logout'),
+                       url(r'^send_message$', 'send_message'),
     # Examples:
     # url(r'^$', 'Pokemon.views.home', name='home'),
     # url(r'^Pokemon/', include('Pokemon.foo.urls')),

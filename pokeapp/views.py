@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 import time
 import json
 from models import *
+from datetime import datetime, timedelta
 
 @login_required(login_url="SignUp")
 def home(request):
@@ -111,12 +112,20 @@ def myposition(request):
 #     return HttpResponse(json.dumps(data), content_type="application/json")
 
 ##################
+
+def get_messages(character):
+    return [{"id": m.id,
+             "text": m.text,
+             "time_left": 1000 * (15 - (datetime.now()-m.timestamp).seconds)}
+            for m in character.sent_messages.filter(timestamp__gte=datetime.now() - timedelta(seconds=15))]
+
 @login_required(login_url="SignUp")
 def get_me(request):
     c = getchar(request)
     return HttpResponse(json.dumps({"x":c.x,
                                     "y":c.y,
-                                    "id":c.id}),
+                                    "id":c.id,
+                                    "messages":get_messages(c)}),
                         content_type="application/json")
 
 @login_required(login_url="SignUp")
@@ -129,14 +138,15 @@ def update(request):
         c.save()
     return HttpResponse()
 
-
+@login_required(login_url="SignUp")
 def other_chars(request):
     data = []
     for char in Character.objects.exclude(id=request.session.get("charid")):
         data.append({"x":char.x,
                      "y":char.y,
                      "id":char.id,
-                     "online":time.time() - char.last_online < 3
+                     "online":time.time() - char.last_online < 3,
+                     "messages":get_messages(char)
                      })
     return HttpResponse(json.dumps(data), content_type="application/json")
 
@@ -179,3 +189,12 @@ def my_login(request):
 def my_logout(request):
     logout(request)
     return HttpResponseRedirect('SignUp')
+
+@login_required(login_url="SignUp")
+def send_message(request):
+    p = request.POST.get
+    if p("text") and p("recipients"):
+        c = getchar(request)
+        c.send_message(p("text"), p("recipients"))
+    return HttpResponse()
+                       
