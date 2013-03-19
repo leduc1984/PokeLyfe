@@ -318,7 +318,12 @@ $(function(){
 	    first_focus = false;
 	}
     });
-    ;
+
+    $(window).keydown(function(event){
+	if (event.which == 16){
+	    $("#message").focus();
+	}
+    });
     
     view.onFrame = function (event){
     	if (me && start){
