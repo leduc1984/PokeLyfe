@@ -6,6 +6,7 @@ from django.template import Context, loader, RequestContext
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
+from django.db import IntegrityError
 import time
 import json
 from models import *
@@ -58,40 +59,56 @@ def other_chars(request):
                      })
     return HttpResponse(json.dumps(data), content_type="application/json")
 
-def signup(request):
+def signup(request, **errors):
+    errors = {key:str(value[0]) if type(value) is list else value
+              for key, value in errors.items()}
     if request.user.is_authenticated():
         return HttpResponseRedirect('home')
-    return HttpResponse(loader.get_template("signup.html").render(RequestContext(request, {})))
+    # errors.update(request.POST)
+    template = loader.get_template("signup.html")
+    context = RequestContext(request, errors)
+    return HttpResponse(template.render(context))
 
 
 def register(request):
     p = request.POST.get
-    if (p("username") and
+    if (p("reg_username") and
         p("email") and
-        p("password") and
-        p("password") == p("confirm_password")):
-        u = User.objects.create_user(username=p("username"),
-                                     password=p("password"),
-                                     email=p("email"))
-        c = Character.objects.create(user=u,
-                                     x=100,
-                                     y=100,
-                                     last_online=time.time())
-        u = authenticate(username=p("username"), password=p("password"))
-        if u is not None:
-            login(request, u)
-            return HttpResponseRedirect('home')
-    return HttpResponseRedirect('SignUp')
+        p("reg_password") and
+        p("reg_password") == p("confirm_password")):
+        if not User.objects.filter(email=p("email")):
+            try:
+                u = User.objects.create_user(username=p("username"),
+                                             password=p("password"),
+                                             email=p("email"))
+                c = Character.objects.create(user=u,
+                                             x=100,
+                                             y=100,
+                                             last_online=time.time())
+                u = authenticate(username=p("username"), password=p("password"))
+                if u is not None:
+                    login(request, u)
+                    return HttpResponseRedirect('home')
+            except IntegrityError:
+                return signup(request, already_used=True, **request.POST)
+        else:
+            return signup(request, email_used=True, **request.POST)
+    elif p("reg_password") != p("confirm_password"):
+        return signup(request, not_match=True, **request.POST)
+    else:
+        return signup(request, blank_fields=True, **request.POST)
+                
 
 def my_login(request):
-    username = request.POST.get("username")
-    password = request.POST.get("password")
+    username = request.POST.get("log_username")
+    password = request.POST.get("log_password")
     if username and password:
         user = authenticate(username=username,
                             password=password)
         if user:
             login(request, user)
-    return HttpResponseRedirect('home')
+            return HttpResponseRedirect('home')
+    return signup(request, invalid_attempt=True, **request.POST)
 
 def my_logout(request):
     logout(request)

@@ -3,21 +3,42 @@
   <head>
     <title>Sign Up</title>
     <script type="text/javascript" src="site_media/jquery.min.js"></script>
+    <link rel="stylesheet" href="site_media/style.css" type="text/css" />
   </head>
   <body>
     <h1>Sign Up</h1>
     <form action="register" method="post">
       {% csrf_token %}
-      Username: <input type="text" name="username" /><br />
-      Email: <input type="text" name="email" /><br />
-      Password: <input type="password" id="first_password" name="password" /><br />
-      Confirm Password: <input type="password" id="confirm_password" name="confirm_password"  /><br />
+      Username: <input type="text" name="reg_username" value="{{ reg_username }}"/>
+      {% if already_used %}
+      <span class="error">That username is already in use</span>
+      {% endif %}
+      <br />
+      Email: <input type="text" name="email" value="{{ email }}"/>
+      {% if email_used %}
+      <span class="error">That email is associated with another account</span>
+      {% endif %}
+      <br />
+      Password: <input type="password" id="first_password" name="reg_password" value="{{ reg_password }}"/><br />
+      
+      Confirm Password: <input type="password" id="confirm_password" name="confirm_password"  value="{{ confirm_password }}"/>
+      {% if not_match %}
+      <span class="error">Your passwords do not match</span>
+      {% endif %}
+      {% if blank_fields %}
+      <span class="error">You must fill in every field</span>
+      {% endif %}
+      <br />
       <input type="submit" value="Submit" />
     </form>
     <form action="login" method="post">
       {% csrf_token %}
-      Username: <input type="text" name="username"  /><br />
-      Password: <input type="password" name="password"  /><br />
+      Username: <input type="text" name="log_username"  value="{{ log_username }}"/><br />
+      Password: <input type="password" name="log_password"  value="{{ log_password }}"/>
+      {% if invalid_attempt %}
+      <span class="error">Invalid login attempt</span>
+      {% endif %}
+      <br />
       <input type="submit" value="Submit" />
     </form>
   </body>
