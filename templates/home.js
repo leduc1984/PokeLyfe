@@ -81,12 +81,6 @@ SpeechBubble.prototype.draw = function(){
 		    break_lines(300, this.text),
 		    bubble.position.x-90,
 		    bubble.position.y-35);
-	// var message = new PointText(new Point(bubble.position.x,
-	// 				      bubble.position.y));
-	// message.content = this.text;
-	// // message.bounds = bubble.bounds;
-	// message.paragraphStyle.justification="right";
-	// this.group.addChild(message);
     }
 }
 
@@ -182,17 +176,11 @@ function send_message(text, recipients){
 
 $(function(){
     var dx = 3;
-    
     var dy = 3;
-    // alert($("body").width());
-    var margin = $("body").css("margin");
-    margin = parseInt(margin.substring(0, margin.length-2));
     $("#mycanvas")
-	.attr("width", $(window).width() - 100)
-	.attr("height", $(window).height() - 150);
-    // Need to add some onresize handler
+    	.attr("width", $(window).width() - 100)
+    	.attr("height", $(window).height() - 150);
     paper.setup("mycanvas");
-    // var me;
     var start = true;
     other_chars = {};
     other_char_ids = new Array();
@@ -215,7 +203,7 @@ $(function(){
 	return csrf_value;
 					
     }
-
+    
     function update_my_position(){
 	$.ajax({
 	    url:"update",
@@ -281,13 +269,6 @@ $(function(){
 	}).done(function(data){
 	    me = new Character(data.x, data.y, data.id, "red");
 	    display_messages(me, data.messages);
-	    // me.speech_bubbles.push(new SpeechBubble(1, 1, "HALLO", 5000));
-	    // var x;
-	    // for(x=0; x<data.messages.length; x++){
-	    // 	var m = data.messages[x];
-	    // 	me.sb_obj[m.id] = true;
-	    // 	me.speech_bubbles.push(new SpeechBubble(m.id, me.id, m.text, m.time_left));
-	    // }
 	});
     }
     
@@ -327,10 +308,7 @@ $(function(){
     
     view.onFrame = function (event){
     	if (me && start){
-	    // setInterval(update, 250);
 	    setInterval(start_updates, 250);
-	    // setInterval(retrieve_other_chars, 100);
-
 	    start = false;
 	}else if(me){
 	    my_movement();
@@ -340,9 +318,7 @@ $(function(){
     	    if(c.online)
     	    	c.move(dx, dy);
     	}
-	
     }
     get_me();
     tool.activate();
-
 });

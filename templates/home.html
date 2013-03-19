@@ -11,7 +11,7 @@
     <h1>Welcome {{ username }}</h1>
     <a href="logout">Log Out</a>
     <textarea id="message" rows = "3" cols = "50">Write a message here!</textarea>
-    <canvas id="mycanvas" resize="true"></canvas>
+    <canvas id="mycanvas" resize></canvas>
     {% for name in imagenames %}
     <img class="sprite_image" id="{{ name }}" src="site_media/{{ name }}.gif" />
     {% endfor %}

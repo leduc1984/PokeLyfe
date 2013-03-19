@@ -3,10 +3,6 @@ from django.conf.urls.defaults import patterns, include, url
 
 urlpatterns = patterns('pokeapp.views',
                        url(r'^home$', 'home'),
-                       url(r'^time$', 'timenow'),
-                       url(r'^movement$','movement'),
-                       url(r'^keydown$', 'keydown'),
-                       url(r'^myposition$', 'myposition'),
                        url(r'^other_chars$', 'other_chars'),
                        url(r'^get_me$', 'get_me'),
                        url(r'^update$', 'update'),
