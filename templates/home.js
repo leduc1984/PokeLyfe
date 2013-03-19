@@ -1,8 +1,54 @@
 paper.install(window);
 
+var me, other_chars, other_char_ids;
+
+function SpeechBubble(id, char_id, text, time_left){
+    this.id = id;
+    this.char_id = char_id;
+    this.text = text;
+    this.group;
+    this.draw();
+    var self = this;
+    setTimeout(function(){
+	self.group.remove();
+    }, time_left); // time_left is in milliseconds
+}
+
+SpeechBubble.prototype.draw = function(){
+    if (!this.group){
+	this.group = new Group();
+	if (this.char_id == me.id)
+	    var character = me;
+	else
+	    var character = other_chars[this.char_id];
+	var bubble = new Path.Rectangle(new Rectangle(character.current_pt.x + 25,
+						      character.current_pt.y - 150,
+						      200,
+						      100));
+	bubble.strokeColor = "black";
+	this.group.addChild(bubble);
+	var message = new PointText(new Point(bubble.position.x + 5,
+					      bubble.position.y + 5));
+	message.content = this.text;
+	this.group.addChild(message);
+    }
+}
+
+SpeechBubble.prototype.move = function(dx, dy){
+    this.group.setPosition(this.group.position.x+dx,
+			   this.group.position.y+dy);
+}
+
+SpeechBubble.prototype.kill = function(){
+    this.group.remove();
+}
+
 function Character(x, y, id, color){
     /*
       Constructor for Character object
+      I'm going to keep the color parameter for now
+      because it may evolve into a way to differentiate between
+      this user's sprite and the other users' sprites
     */
     this.color = color;
     this.new_pt = new Point(x, y);
@@ -14,6 +60,8 @@ function Character(x, y, id, color){
     this.rast;
     this.dir;
     this.online = true;
+    this.sb_obj = {};
+    this.speech_bubbles = new Array();
 }
 
 Character.prototype.move = function(dx, dy){
@@ -26,6 +74,7 @@ Character.prototype.move = function(dx, dy){
 	moving = true;
 	var face = xdist/Math.abs(xdist);
 	this.current_pt.x += dx * face;
+	this.speech_bubbles.forEach(function(e){e.move(dx * face, 0);});
 	if (face>0)
 	    this.dir="right";
 	else
@@ -35,11 +84,13 @@ Character.prototype.move = function(dx, dy){
 	moving = true
 	var face = ydist/Math.abs(ydist);
 	this.current_pt.y += dy * face;
+	this.speech_bubbles.forEach(function(e){e.move(0, dy * face);});
 	if (face>0)
 	    this.dir="down";
 	else
 	    this.dir="up";
     }
+
     this.draw(moving);
 }
 
@@ -70,10 +121,10 @@ $(function(){
 	.attr("height", $(window).height() - 150);
     // Need to add some onresize handler
     paper.setup("mycanvas");
-    var me;
+    // var me;
     var start = true;
-    var other_chars = {};
-    var other_char_ids = new Array();
+    other_chars = {};
+    other_char_ids = new Array();
     other_chars.length = 0;
     var tool = new Tool();
     keysdown = {};
@@ -88,8 +139,8 @@ $(function(){
 	var c = document.cookie;
 	var csrf = "csrftoken=";
 	var i = c.search(csrf)+csrf.length;
-	var fuck = c.substring(i, c.length);
-	var csrf_value = fuck.substring(0, fuck.search(";"));
+	var x = c.substring(i, c.length);
+	var csrf_value = x.substring(0, x.search(";"));
 	return csrf_value;
 					
     }
@@ -142,6 +193,7 @@ $(function(){
 	    url:"get_me"
 	}).done(function(data){
 	    me = new Character(data.x, data.y, data.id, "red");
+	    me.speech_bubbles.push(new SpeechBubble(1, 1, "HALLO", 5000));
 	});
     }
     
