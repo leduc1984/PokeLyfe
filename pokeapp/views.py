@@ -77,7 +77,7 @@ def register(request):
         p("reg_password") and
         p("reg_password") == p("confirm_password")):
         if not User.objects.filter(email=p("email")):
-            try:
+            if not User.objects.filter(username=p("reg_username")):
                 u = User.objects.create_user(username=p("username"),
                                              password=p("password"),
                                              email=p("email"))
@@ -89,7 +89,7 @@ def register(request):
                 if u is not None:
                     login(request, u)
                     return HttpResponseRedirect('home')
-            except IntegrityError:
+            else:
                 return signup(request, already_used=True, **request.POST)
         else:
             return signup(request, email_used=True, **request.POST)
